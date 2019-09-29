@@ -1,102 +1,169 @@
 package server;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Scanner;
+
+import javax.xml.bind.DatatypeConverter;
 
 
 public class Main {
 
 	public static void main(String[] args) {
-		System.out.println("Starting Server...");
-		Main main = new Main();
+		System.out.println("Iniciando Server...");
+
+		Scanner sc = new Scanner(System.in);
+
+		int numCon1 = -1;
+		System.out.println("Ingrese el numero de clientes que desea esperar");
+		try {
+			numCon1 = Integer.parseInt(sc.nextLine());
+		} catch (NumberFormatException e) {
+			System.out.println("Por favor ingrese un numero entero");
+			System.out.println("Terminando ejecucion");
+			System.exit(1);
+		}
+		
+		ArrayList<File> files = new ArrayList<File>();
+		try {
+			File folder = new File("./data/");
+			int i = 1;
+			for (File fileEntry : folder.listFiles()) {
+				if (fileEntry.isDirectory()) {
+					
+				} else {
+					files.add(fileEntry);
+					System.out.println(i + ". " + fileEntry.getName());
+				}
+			}
+		} catch (Exception e) {
+			System.out.println("Error al leer archivos del directorio ./data/");
+			System.exit(1);
+		}
+
+		int numFile = -1;
+		System.out.println("Ingrese el numero del archivo que desea enviar");
+		try {
+			numFile = Integer.parseInt(sc.nextLine());
+			System.out.println("Se usara el archivo: " + files.get(numFile - 1).toString());
+		} catch (NumberFormatException e) {
+			System.out.println("Por favor ingrese un numero entero");
+			System.out.println("Terminando ejecucion");
+			System.exit(1);
+		}
+		sc.close();
+		
+		Main main = new Main(numCon1, files.get(numFile - 1));
 		main.recieveConnections();
 	}
+	
+
+	private byte[] bytes;
+	
 
 	/**
 	 * maximo de conexiones
 	 */
-	public final static int MAX_CONECTIONS = 25;
-	
+	private int numCon;
 	/**
 	 * arreglo de sockets
 	 */
-	private ArrayList<Client> clients;
-	
+	private ArrayList<ClienteThread> clients;
+
 	/**
 	 * socket del servidor para recivir conexiones
 	 */
 	private ServerSocket serverSocket;
-	
-	/**
-	 * indica si el servidor esta en modo test
-	 */
-	private boolean testMode;
-	
-	/**
-	 * indica el numero de conexiones activas que debe esperarel servidor en modo test
-	 */
-	private int testConnectios;
-	
+
 	/**
 	 * indica cual es el siguiente id;
 	 */
 	private int ids;
 	
-	private ArrayList<ClienteThread> testThreads;
+	/**
+	 * numero de clientes listos
+	 */
+	private int listos;
+
 	
-	public Main() {
-		clients = new ArrayList<Client>();
+	public Main(int numCon1, File pArch) {
+		clients = new ArrayList<ClienteThread>();
 		try {
-			serverSocket = new ServerSocket(420);
+			serverSocket = new ServerSocket(4200);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		setTestMode(false);
+		numCon = numCon1;
 		ids = 1;
+		listos = 0;
+		
+		
+		try {
+			FileInputStream fi = new FileInputStream(pArch);
+			bytes = new byte[(int) pArch.length()];
+			fi.read(bytes);
+			fi.close();
+			//Hash, para efectos de verlo
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			md.update(bytes);
+			byte[] digest = md.digest();
+			String hash = DatatypeConverter.printHexBinary(digest).toUpperCase();
+			System.out.println(hash);
+		} catch (IOException | NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
-	
-	
-	
+
+
+
 	/**
 	 * recive las conexiones entrantes
 	 */
 	public void recieveConnections() {
+		System.out.println("ServerSocket: " + serverSocket.toString());
 		while(true){
-			Socket tempSocket = null;
 			
+			Socket tempSocket = null;
+
 			try {
 				tempSocket = serverSocket.accept();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			
-			if(clients.size() >= MAX_CONECTIONS && tempSocket != null) {
+
+			if(clients.size() >= numCon && tempSocket != null) {
 				System.out.println("Connection with client at:" + 
-									tempSocket.getInetAddress() + " refused, max connections reached");
-			} else if( tempSocket != null) {
-				Client client = new Client(tempSocket, ids);
-				ids += 1;
-				clients.add(client);
-				
-				if(testMode) {
-					//crea el arreglo
-					if(testThreads == null) {
-						testThreads = new ArrayList<ClienteThread>();
-					}
-					
-					
-					
+						tempSocket.getInetAddress() + " refused, max connections reached");
+				try {
+					tempSocket.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
+			} else if( tempSocket != null) {
+				System.out.println("Connection accepted:");
+				System.out.println(tempSocket.toString());
+				Client client = new Client(tempSocket, ids++);
+				ClienteThread ct = new ClienteThread(client, this, bytes);
+				clients.add(ct);
+				ct.start();
 				
-				
+
+
+
 			} else {
 				System.out.println("[ERROR]: exception while creating socket");
 			}
-			
-			
+
+
 		}
 	}
 
@@ -104,27 +171,21 @@ public class Main {
 	 * se encarga de borrar un cliente cuando este ha terminado
 	 * @param client el cliente que desea borrar
 	 */
-	public void deleteClient(Client client) {
+	public void deleteClient(ClienteThread client) {
 		clients.remove(client);
 	}
 
-	/**
-	 * Indica si el servidor esta en test mode
-	 * @return true si esta en modo test, false de lo contrario
-	 */
-	public boolean isTestMode() {
-		return testMode;
+	public synchronized boolean registrarListo() {
+		listos++;
+		if(listos == numCon) {
+			this.notifyAll();
+			return true;
+		}
+		return false;
+		
+
 	}
 
 
-	/**
-	 * activa o desactiva el modo test
-	 * @param testMode true si se quiere poner en modo test, false si se quiere desactivar el modo test
-	 */
-	public void setTestMode(boolean testMode) {
-		this.testMode = testMode;
-	}
-	
-	
-	
+
 }

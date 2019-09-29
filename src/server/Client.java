@@ -65,5 +65,18 @@ public class Client {
 	public int getId() {
 		return id;
 	}
+
+	public void cerrarConexion() {
+		try {
+			socket.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public void sendBytes(byte[] bytes) throws IOException {
+		socket.getOutputStream().write(bytes);
+	}
 	
 }
