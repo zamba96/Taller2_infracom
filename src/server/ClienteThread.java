@@ -31,7 +31,7 @@ public class ClienteThread extends Thread{
 		this.client = client;
 		this.main = main;
 		this.bytes = bytes;
-
+		buffer = new byte[BUFFER_SIZE];
 	}
 
 
@@ -40,6 +40,7 @@ public class ClienteThread extends Thread{
 		try {
 			//listo y ack del listo
 			String line = client.read();
+			System.out.println(line);
 			if(line.equals(LISTO)) {
 				client.sendString(ACK);
 				boolean listo = main.registrarListo();
@@ -58,6 +59,7 @@ public class ClienteThread extends Thread{
 			int pos = 0;
 			//envio del archivo
 			client.sendString("BYTES:" + bytes.length);
+			System.out.println("BYTES:" + bytes.length);
 			long inicio = System.currentTimeMillis();
 			for(byte b:bytes) {
 				buffer[pos] = b;
@@ -65,8 +67,10 @@ public class ClienteThread extends Thread{
 				if(pos == BUFFER_SIZE) {
 					client.sendBytes(buffer);
 					pos = 0;
+					buffer = new byte[BUFFER_SIZE];
 				}
 			}
+			System.out.println("enviados");
 			//envio del hash md5
 			try {
 				MessageDigest md = MessageDigest.getInstance("MD5");
@@ -86,6 +90,7 @@ public class ClienteThread extends Thread{
 			boolean exito;
 			long duracion = -1;
 			line = client.read();
+			System.out.println(line);
 			if(line.contentEquals(OK)) {
 				duracion = System.currentTimeMillis() - inicio;
 				exito = true;

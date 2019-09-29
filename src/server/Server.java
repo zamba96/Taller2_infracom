@@ -7,6 +7,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Scanner;
@@ -217,7 +219,8 @@ public class Server {
 				} catch(Exception e) {
 
 				}
-				fh = new FileHandler("./logs/prueba" + date.toString() + ".log");
+				DateFormat dateFormat = new SimpleDateFormat("yy-MM-dd HH-mm-ss");
+				fh = new FileHandler("./logs/prueba" + dateFormat.format(date) + ".log");
 				threadLogger.addHandler(fh);
 				SimpleFormatter formatter = new SimpleFormatter();
 				fh.setFormatter(formatter);

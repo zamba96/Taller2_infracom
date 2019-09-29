@@ -37,7 +37,7 @@ public class Client {
 		this.id = id;
 		try {
 			reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			writer = new PrintWriter(socket.getOutputStream());
+			writer = new PrintWriter(socket.getOutputStream(), true);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -49,13 +49,11 @@ public class Client {
 	 * @param s el string a enviar
 	 */
 	public void sendString(String s) {
-		writer.write(s);
-		writer.flush();
+		writer.println(s);
 	}
 	
 	
 	public String read() throws IOException {
-		byte b = (byte) socket.getInputStream().read();
 		return reader.readLine();
 		
 	}
@@ -78,6 +76,7 @@ public class Client {
 	}
 	
 	public void sendBytes(byte[] bytes) throws IOException {
+		//System.out.println(bytes);
 		socket.getOutputStream().write(bytes);
 	}
 	
