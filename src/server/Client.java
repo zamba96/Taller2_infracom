@@ -55,7 +55,9 @@ public class Client {
 	
 	
 	public String read() throws IOException {
+		byte b = (byte) socket.getInputStream().read();
 		return reader.readLine();
+		
 	}
 	
 	/**

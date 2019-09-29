@@ -20,14 +20,14 @@ public class ClienteThread extends Thread{
 
 	private Client client;
 
-	private Main main;
+	private Server main;
 
 	private byte[] buffer;
 
 	private byte[] bytes;
 
 
-	public ClienteThread(Client client, Main main, byte[] bytes) {
+	public ClienteThread(Client client, Server main, byte[] bytes) {
 		this.client = client;
 		this.main = main;
 		this.bytes = bytes;
@@ -98,7 +98,9 @@ public class ClienteThread extends Thread{
 								"\nExito:" + exito + 
 								"\nduracion: " + duracion +"ms " + duracion/1000 + " segundos");
 			
-			
+			//se elimina de los clientes y se cierra
+			client.cerrarConexion();
+			main.deleteClient(this);
 			
 
 		} catch (IOException | InterruptedException e) {

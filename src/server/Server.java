@@ -9,15 +9,33 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 import javax.xml.bind.DatatypeConverter;
 
 
-public class Main {
+public class Server {
 
+	private final static Logger LOGGER = Logger.getLogger(Server.class.getName());
+	
 	public static void main(String[] args) {
-		System.out.println("Iniciando Server...");
+		
+		//LOGGER.info("Iniciando Server...");
+		LOGGER.info("Iniciaasdfsdfndo Server");
 
+		FileHandler fh;
+		try {
+			fh = new FileHandler("./logs/ServerLog.log");
+			LOGGER.addHandler(fh);
+			SimpleFormatter formatter = new SimpleFormatter();
+			fh.setFormatter(formatter);
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		
 		Scanner sc = new Scanner(System.in);
 
 		int numCon1 = -1;
@@ -25,8 +43,8 @@ public class Main {
 		try {
 			numCon1 = Integer.parseInt(sc.nextLine());
 		} catch (NumberFormatException e) {
-			System.out.println("Por favor ingrese un numero entero");
-			System.out.println("Terminando ejecucion");
+			LOGGER.severe("Por favor ingrese un numero entero");
+			LOGGER.severe("Terminando ejecucion");
 			System.exit(1);
 		}
 		
@@ -43,7 +61,7 @@ public class Main {
 				}
 			}
 		} catch (Exception e) {
-			System.out.println("Error al leer archivos del directorio ./data/");
+			LOGGER.severe("Error al leer archivos del directorio ./data/");
 			System.exit(1);
 		}
 
@@ -51,21 +69,22 @@ public class Main {
 		System.out.println("Ingrese el numero del archivo que desea enviar");
 		try {
 			numFile = Integer.parseInt(sc.nextLine());
-			System.out.println("Se usara el archivo: " + files.get(numFile - 1).toString());
+			LOGGER.info("Se usara el archivo: " + files.get(numFile - 1).toString());
 		} catch (NumberFormatException e) {
-			System.out.println("Por favor ingrese un numero entero");
-			System.out.println("Terminando ejecucion");
+			LOGGER.severe("Por favor ingrese un numero entero");
+			LOGGER.severe("Terminando ejecucion");
 			System.exit(1);
 		}
 		sc.close();
 		
-		Main main = new Main(numCon1, files.get(numFile - 1));
+		Server main = new Server(numCon1, files.get(numFile - 1));
 		main.recieveConnections();
 	}
 	
-
+	/**
+	 * bytes del archivo que se desea mandar
+	 */
 	private byte[] bytes;
-	
 
 	/**
 	 * maximo de conexiones
@@ -91,8 +110,12 @@ public class Main {
 	 */
 	private int listos;
 
-	
-	public Main(int numCon1, File pArch) {
+	/**
+	 * crea un nuevo  main
+	 * @param numCon1 numero de conexiones que espera el server para enviar vainas
+	 * @param pArch	archivo que se desea enviar
+	 */
+	public Server(int numCon1, File pArch) {
 		clients = new ArrayList<ClienteThread>();
 		try {
 			serverSocket = new ServerSocket(4200);
@@ -115,7 +138,7 @@ public class Main {
 			md.update(bytes);
 			byte[] digest = md.digest();
 			String hash = DatatypeConverter.printHexBinary(digest).toUpperCase();
-			System.out.println(hash);
+			LOGGER.info("HASH" + hash);
 		} catch (IOException | NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -128,7 +151,7 @@ public class Main {
 	 * recive las conexiones entrantes
 	 */
 	public void recieveConnections() {
-		System.out.println("ServerSocket: " + serverSocket.toString());
+		LOGGER.info("ServerSocket: " + serverSocket.toString());
 		while(true){
 			
 			Socket tempSocket = null;
@@ -140,7 +163,7 @@ public class Main {
 			}
 
 			if(clients.size() >= numCon && tempSocket != null) {
-				System.out.println("Connection with client at:" + 
+				LOGGER.info("Connection with client at:" + 
 						tempSocket.getInetAddress() + " refused, max connections reached");
 				try {
 					tempSocket.close();
@@ -149,8 +172,8 @@ public class Main {
 					e.printStackTrace();
 				}
 			} else if( tempSocket != null) {
-				System.out.println("Connection accepted:");
-				System.out.println(tempSocket.toString());
+				LOGGER.info("Connection accepted:");
+				LOGGER.info(tempSocket.toString());
 				Client client = new Client(tempSocket, ids++);
 				ClienteThread ct = new ClienteThread(client, this, bytes);
 				clients.add(ct);
@@ -160,7 +183,7 @@ public class Main {
 
 
 			} else {
-				System.out.println("[ERROR]: exception while creating socket");
+				LOGGER.severe("exception while creating socket");
 			}
 
 
@@ -175,15 +198,18 @@ public class Main {
 		clients.remove(client);
 	}
 
+	/**
+	 * registra un cliente como listo
+	 * @return true si ya se encuentran todos listos, false de lo contrario
+	 */
 	public synchronized boolean registrarListo() {
 		listos++;
 		if(listos == numCon) {
 			this.notifyAll();
+			listos = 0;
 			return true;
 		}
 		return false;
-		
-
 	}
 
 
