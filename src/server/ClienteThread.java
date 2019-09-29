@@ -93,8 +93,9 @@ public class ClienteThread extends Thread{
 				duracion = System.currentTimeMillis() - inicio;
 				exito = false;
 			}
-			System.out.println("============================================");
-			System.out.println("Cliente: " + client.getId() + 
+			
+			Server.threadLogger.info("==================================================" + 
+								"\nCliente: " + client.getId() + 
 								"\nExito:" + exito + 
 								"\nduracion: " + duracion +"ms " + duracion/1000 + " segundos");
 			

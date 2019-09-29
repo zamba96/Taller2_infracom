@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Scanner;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
@@ -19,11 +20,13 @@ import javax.xml.bind.DatatypeConverter;
 public class Server {
 
 	private final static Logger LOGGER = Logger.getLogger(Server.class.getName());
-	
+
+	public final static Logger threadLogger = Logger.getLogger(ClienteThread.class.getName());
+
 	public static void main(String[] args) {
-		
+		System.out.println(new Date().toString());
 		//LOGGER.info("Iniciando Server...");
-		LOGGER.info("Iniciaasdfsdfndo Server");
+		LOGGER.info("Iniciando Server");
 
 		FileHandler fh;
 		try {
@@ -31,11 +34,11 @@ public class Server {
 			LOGGER.addHandler(fh);
 			SimpleFormatter formatter = new SimpleFormatter();
 			fh.setFormatter(formatter);
-			
+
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		Scanner sc = new Scanner(System.in);
 
 		int numCon1 = -1;
@@ -47,14 +50,14 @@ public class Server {
 			LOGGER.severe("Terminando ejecucion");
 			System.exit(1);
 		}
-		
+
 		ArrayList<File> files = new ArrayList<File>();
 		try {
 			File folder = new File("./data/");
 			int i = 1;
 			for (File fileEntry : folder.listFiles()) {
 				if (fileEntry.isDirectory()) {
-					
+
 				} else {
 					files.add(fileEntry);
 					System.out.println(i + ". " + fileEntry.getName());
@@ -76,11 +79,11 @@ public class Server {
 			System.exit(1);
 		}
 		sc.close();
-		
+
 		Server main = new Server(numCon1, files.get(numFile - 1));
 		main.recieveConnections();
 	}
-	
+
 	/**
 	 * bytes del archivo que se desea mandar
 	 */
@@ -104,7 +107,7 @@ public class Server {
 	 * indica cual es el siguiente id;
 	 */
 	private int ids;
-	
+
 	/**
 	 * numero de clientes listos
 	 */
@@ -126,8 +129,8 @@ public class Server {
 		numCon = numCon1;
 		ids = 1;
 		listos = 0;
-		
-		
+
+
 		try {
 			FileInputStream fi = new FileInputStream(pArch);
 			bytes = new byte[(int) pArch.length()];
@@ -153,7 +156,7 @@ public class Server {
 	public void recieveConnections() {
 		LOGGER.info("ServerSocket: " + serverSocket.toString());
 		while(true){
-			
+
 			Socket tempSocket = null;
 
 			try {
@@ -178,7 +181,7 @@ public class Server {
 				ClienteThread ct = new ClienteThread(client, this, bytes);
 				clients.add(ct);
 				ct.start();
-				
+
 
 
 
@@ -205,6 +208,23 @@ public class Server {
 	public synchronized boolean registrarListo() {
 		listos++;
 		if(listos == numCon) {
+			FileHandler fh;
+			try {
+				Date date = new Date();
+
+				try {
+					threadLogger.removeHandler(threadLogger.getHandlers()[0]);
+				} catch(Exception e) {
+
+				}
+				fh = new FileHandler("./logs/prueba" + date.toString() + ".log");
+				threadLogger.addHandler(fh);
+				SimpleFormatter formatter = new SimpleFormatter();
+				fh.setFormatter(formatter);
+
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
 			this.notifyAll();
 			listos = 0;
 			return true;
