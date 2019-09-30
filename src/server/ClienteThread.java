@@ -59,15 +59,27 @@ public class ClienteThread extends Thread{
 			int pos = 0;
 			//envio del archivo
 			client.sendString("BYTES:" + bytes.length);
-			System.out.println("BYTES:" + bytes.length);
+			//System.out.println("BYTES:" + bytes.length);
 			long inicio = System.currentTimeMillis();
+			int restante = bytes.length;
 			for(byte b:bytes) {
 				buffer[pos] = b;
 				pos++;
-				if(pos == BUFFER_SIZE) {
+				
+				if(pos == buffer.length) {
 					client.sendBytes(buffer);
+					
 					pos = 0;
-					buffer = new byte[BUFFER_SIZE];
+					restante -= buffer.length;
+					
+					
+					
+					if(restante >= BUFFER_SIZE) {
+						buffer = new byte[BUFFER_SIZE];
+					}else {
+						buffer = new byte[restante];
+						System.out.println("Last pass: " + restante);
+					}
 				}
 			}
 			System.out.println("enviados");
@@ -78,7 +90,7 @@ public class ClienteThread extends Thread{
 				byte[] digest = md.digest();
 				String hash = DatatypeConverter.printHexBinary(digest).toUpperCase();
 				client.sendString("HASH:" + hash);
-				
+				System.out.println("hash evniado");
 			} catch (NoSuchAlgorithmException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -103,6 +115,10 @@ public class ClienteThread extends Thread{
 								"\nCliente: " + client.getId() + 
 								"\nExito:" + exito + 
 								"\nduracion: " + duracion +"ms " + duracion/1000 + " segundos");
+			System.out.println("==================================================" + 
+					"\nCliente: " + client.getId() + 
+					"\nExito:" + exito + 
+					"\nduracion: " + duracion +"ms " + duracion/1000 + " segundos");
 			
 			//se elimina de los clientes y se cierra
 			client.cerrarConexion();
@@ -111,7 +127,9 @@ public class ClienteThread extends Thread{
 
 		} catch (IOException | InterruptedException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			//e.printStackTrace();
+			Server.threadLogger.severe("Se perdio la conexion inesperadamente");
+			main.deleteClient(this);
 		}
 
 	}

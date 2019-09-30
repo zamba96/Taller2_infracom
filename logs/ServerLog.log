@@ -1,10 +1,10 @@
-Sep 29, 2019 4:51:27 PM server.Server main
+Sep 29, 2019 10:59:45 PM server.Server main
 INFO: Se usara el archivo: .\data\Screenshot (3).png
-Sep 29, 2019 4:51:27 PM server.Server <init>
+Sep 29, 2019 10:59:45 PM server.Server <init>
 INFO: HASH2B084F4EEA6F0DE327CC3A8548979BF7
-Sep 29, 2019 4:51:27 PM server.Server recieveConnections
+Sep 29, 2019 10:59:45 PM server.Server recieveConnections
 INFO: ServerSocket: ServerSocket[addr=0.0.0.0/0.0.0.0,localport=4200]
-Sep 29, 2019 4:51:35 PM server.Server recieveConnections
+Sep 29, 2019 11:00:05 PM server.Server recieveConnections
 INFO: Connection accepted:
-Sep 29, 2019 4:51:35 PM server.Server recieveConnections
-INFO: Socket[addr=/127.0.0.1,port=51706,localport=4200]
+Sep 29, 2019 11:00:05 PM server.Server recieveConnections
+INFO: Socket[addr=/127.0.0.1,port=57276,localport=4200]

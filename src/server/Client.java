@@ -12,22 +12,22 @@ public class Client {
 	 * socket de conceccion con el cliente
 	 */
 	private Socket socket;
-	
+
 	/**
 	 * lector del cliente
 	 */
 	private BufferedReader reader;
-	
+
 	/**
 	 * escritor del cliente
 	 */
 	private PrintWriter writer;
-	
+
 	/**
 	 * indica el id del cliente
 	 */
 	private int id;
-	
+
 	/**
 	 * crea un nuevo cliente, asignando el writer y el reader del socket correspondiente
 	 * @param s socket del cliente
@@ -43,7 +43,7 @@ public class Client {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * envia un string al cliente
 	 * @param s el string a enviar
@@ -51,13 +51,13 @@ public class Client {
 	public void sendString(String s) {
 		writer.println(s);
 	}
-	
-	
+
+
 	public String read() throws IOException {
 		return reader.readLine();
-		
+
 	}
-	
+
 	/**
 	 * gets the id of the client
 	 * @return the id
@@ -74,10 +74,16 @@ public class Client {
 			e.printStackTrace();
 		}
 	}
-	
+	private int i = 0;
+
 	public void sendBytes(byte[] bytes) throws IOException {
 		//System.out.println(bytes);
+		//for(byte b: bytes) {
+			//System.out.println(i + ":" + b);
+			//i++;
+		//}
 		socket.getOutputStream().write(bytes);
+		socket.getOutputStream().flush();
 	}
-	
+
 }

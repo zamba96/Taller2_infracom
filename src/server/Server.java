@@ -124,6 +124,7 @@ public class Server {
 		clients = new ArrayList<ClienteThread>();
 		try {
 			serverSocket = new ServerSocket(4200);
+			System.out.println(serverSocket.getInetAddress());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
